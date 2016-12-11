@@ -8,7 +8,6 @@
 var
 	fs = require("fs"),
 	path = require("path"),
-	xcode = require('xcode'),
 
 	BUILD_VERSION = '9.0',
 	BUILD_VERSION_XCODE = '"' + BUILD_VERSION + '"',
@@ -52,8 +51,9 @@ function nonComments(obj) {
 
 // Starting here
 
-module.exports = function (context) {
+module.exports = function(context) {
 	var
+		xcode = context.requireCordovaModule('xcode'),
 		projectRoot = context.opts.projectRoot,
 		projectName = getProjectName(projectRoot),
 		xcconfigPath = path.join(projectRoot, '/platforms/ios/cordova/build.xcconfig'),
@@ -104,31 +104,23 @@ module.exports = function (context) {
 
 	// "project.pbxproj"
 	// Parsing it
-	xcodeProject.parse(function (error) {
-		var configurations, buildSettings;
+	xcodeProject.parseSync();
+	var configurations, buildSettings;
 
-		if (error) {
-			debugerror('an error occurred during the parsing of the project file');
-
-			return;
-		}
-
-
-		configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
-		// Adding or changing the parameters we need
-		Object.keys(configurations).forEach(function (config) {
-			buildSettings = configurations[config].buildSettings;
-			buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
-			buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeadXcode;
-			buildSettings.IPHONEOS_DEPLOYMENT_TARGET = BUILD_VERSION_XCODE;
-			buildSettings.ENABLE_BITCODE = ENABLE_BITCODE_XCODE;
-			buildSettings.SWIFT_VERSION = SWIFT_VERSION_XCODE;
-		});
-
-		// Writing the file again
-		fs.writeFileSync(xcodeProjectPath, xcodeProject.writeSync(), 'utf-8');
-		debug('file correctly fixed: ' + xcodeProjectPath);
+	configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
+	// Adding or changing the parameters we need
+	Object.keys(configurations).forEach(function(config) {
+		buildSettings = configurations[config].buildSettings;
+		buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
+		buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeadXcode;
+		buildSettings.IPHONEOS_DEPLOYMENT_TARGET = BUILD_VERSION_XCODE;
+		buildSettings.ENABLE_BITCODE = ENABLE_BITCODE_XCODE;
+		buildSettings.SWIFT_VERSION = SWIFT_VERSION_XCODE;
 	});
+
+	// Writing the file again
+	fs.writeFileSync(xcodeProjectPath, xcodeProject.writeSync(), 'utf-8');
+	debug('file correctly fixed: ' + xcodeProjectPath);
 };
 
 

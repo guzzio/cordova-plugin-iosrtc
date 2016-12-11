@@ -16,7 +16,7 @@
  */
 
 
-(function () {
+(function() {
 	// run on iOS Cordova only
 	if (!(window.cordova && window.cordova.platformId === 'ios')) {
 		return;
@@ -41,7 +41,7 @@
 
 		// WebSocket is an EventTarget as per W3C spec.
 
-		this.addEventListener = function (type, newListener) {
+		this.addEventListener = function(type, newListener) {
 			var listenersType, i, listener;
 
 			if (!type || !newListener) {
@@ -62,7 +62,7 @@
 			listenersType.push(newListener);
 		};
 
-		this.removeEventListener = function (type, oldListener) {
+		this.removeEventListener = function(type, oldListener) {
 			var listenersType, i, listener;
 
 			if (!type || !oldListener) {
@@ -86,7 +86,7 @@
 			}
 		};
 
-		this.dispatchEvent = function (event) {
+		this.dispatchEvent = function(event) {
 			var
 				self = this,
 				type,
@@ -122,13 +122,13 @@
 
 			function fire(listener, event) {
 				// Avoid iOS WebSocket bug by running the listener within a setTimeout.
-				setTimeout(function () {
+				setTimeout(function() {
 					listener.call(self, event);
 				});
 			}
 		};
 
-		setTimeout(function () {
+		setTimeout(function() {
 			// Create a native WebSocket instance.
 			if (protocols) {
 				self.ws = new NativeWebSocket(url, protocols);
@@ -138,26 +138,26 @@
 
 			// Set the native WebSocket events.
 
-			self.ws.onopen = function (event) {
-				setTimeout(function () {
+			self.ws.onopen = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onerror = function (event) {
-				setTimeout(function () {
+			self.ws.onerror = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onclose = function (event) {
-				setTimeout(function () {
+			self.ws.onclose = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onmessage = function (event) {
-				setTimeout(function () {
+			self.ws.onmessage = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
@@ -169,81 +169,81 @@
 
 	Object.defineProperties(FakeWebSocket.prototype, {
 		url: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.url;
 				}
 			}
 		},
 		readyState: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.readyState;
 				}
 			}
 		},
 		protocol: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.protocol;
 				}
 			}
 		},
 		extensions: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.extensions;
 				}
 			}
 		},
 		bufferedAmount: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.bufferedAmount;
 				}
 			}
 		},
 		CONNECTING: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.CONNECTING;
 				}
 			}
 		},
 		OPEN: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.OPEN;
 				}
 			}
 		},
 		CLOSING: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.CLOSING;
 				}
 			}
 		},
 		CLOSED: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.CLOSED;
 				}
 			}
 		},
 		binaryType: {
-			get: function () {
+			get: function() {
 				if (this.ws) {
 					return this.ws.binaryType;
 				}
 			},
-			set: function (type) {
+			set: function(type) {
 				var self = this;
 
 				if (this.ws) {
 					this.ws.binaryType = type;
 				} else {
-					setTimeout(function () {
+					setTimeout(function() {
 						self.ws.binaryType = type;
 					});
 				}
@@ -254,19 +254,22 @@
 
 	// Expose W3C WebSocket methods.
 
-	FakeWebSocket.prototype.send = function (data) {
+	FakeWebSocket.prototype.send = function(data) {
 		var self = this;
 
 		// Avoid iOS WebSocket crash.
-		setTimeout(function () {
+		setTimeout(function() {
 			self.ws.send(data);
 		});
 	};
 
-	FakeWebSocket.prototype.close = function (code, reason) {
+	FakeWebSocket.prototype.close = function(code, reason) {
 		var self = this;
 
-		setTimeout(function () {
+		setTimeout(function() {
+			if (!self.ws) {
+				return;
+			}
 			if (!code && !reason) {
 				self.ws.close();
 			} else if (code && !reason) {
