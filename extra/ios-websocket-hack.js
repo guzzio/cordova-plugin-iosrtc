@@ -16,7 +16,12 @@
  */
 
 
-(function () {
+(function() {
+	// run on iOS Cordova only
+	if (!(window.cordova && window.cordova.platformId === 'ios')) {
+		return;
+	}
+
 	// Store a reference of the native WebSocket class.
 	var NativeWebSocket = window.WebSocket;
 
@@ -27,7 +32,8 @@
 
 	// Fake WebSocket class that ill override the native one.
 	function FakeWebSocket() {
-		var self = this,
+		var
+			self = this,
 			url = arguments[0],
 			protocols = arguments[1],
 			listeners = {};
@@ -35,9 +41,8 @@
 
 		// WebSocket is an EventTarget as per W3C spec.
 
-		this.addEventListener = function (type, newListener) {
-			var listenersType,
-				i, listener;
+		this.addEventListener = function(type, newListener) {
+			var listenersType, i, listener;
 
 			if (!type || !newListener) {
 				return;
@@ -57,9 +62,8 @@
 			listenersType.push(newListener);
 		};
 
-		this.removeEventListener = function (type, oldListener) {
-			var listenersType,
-				i, listener;
+		this.removeEventListener = function(type, oldListener) {
+			var listenersType, i, listener;
 
 			if (!type || !oldListener) {
 				return;
@@ -82,8 +86,9 @@
 			}
 		};
 
-		this.dispatchEvent = function (event) {
-			var self = this,
+		this.dispatchEvent = function(event) {
+			var
+				self = this,
 				type,
 				listenersType,
 				dummyListener,
@@ -117,13 +122,13 @@
 
 			function fire(listener, event) {
 				// Avoid iOS WebSocket bug by running the listener within a setTimeout.
-				setTimeout(function () {
+				setTimeout(function() {
 					listener.call(self, event);
 				});
 			}
 		};
 
-		setTimeout(function () {
+		setTimeout(function() {
 			// Create a native WebSocket instance.
 			if (protocols) {
 				self.ws = new NativeWebSocket(url, protocols);
@@ -133,26 +138,26 @@
 
 			// Set the native WebSocket events.
 
-			self.ws.onopen = function (event) {
-				setTimeout(function () {
+			self.ws.onopen = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onerror = function (event) {
-				setTimeout(function () {
+			self.ws.onerror = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onclose = function (event) {
-				setTimeout(function () {
+			self.ws.onclose = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
 
-			self.ws.onmessage = function (event) {
-				setTimeout(function () {
+			self.ws.onmessage = function(event) {
+				setTimeout(function() {
 					self.dispatchEvent(event);
 				});
 			};
@@ -164,56 +169,84 @@
 
 	Object.defineProperties(FakeWebSocket.prototype, {
 		url: {
-			get: function () {
-				return this.ws.url;
+			get: function() {
+				if (this.ws) {
+					return this.ws.url;
+				}
 			}
 		},
 		readyState: {
-			get: function () {
-				return this.ws.readyState;
+			get: function() {
+				if (this.ws) {
+					return this.ws.readyState;
+				}
 			}
 		},
 		protocol: {
-			get: function () {
-				return this.ws.protocol;
+			get: function() {
+				if (this.ws) {
+					return this.ws.protocol;
+				}
 			}
 		},
 		extensions: {
-			get: function () {
-				return this.ws.extensions;
+			get: function() {
+				if (this.ws) {
+					return this.ws.extensions;
+				}
 			}
 		},
 		bufferedAmount: {
-			get: function () {
-				return this.ws.bufferedAmount;
+			get: function() {
+				if (this.ws) {
+					return this.ws.bufferedAmount;
+				}
 			}
 		},
 		CONNECTING: {
-			get: function () {
-				return this.ws.CONNECTING;
+			get: function() {
+				if (this.ws) {
+					return this.ws.CONNECTING;
+				}
 			}
 		},
 		OPEN: {
-			get: function () {
-				return this.ws.OPEN;
+			get: function() {
+				if (this.ws) {
+					return this.ws.OPEN;
+				}
 			}
 		},
 		CLOSING: {
-			get: function () {
-				return this.ws.CLOSING;
+			get: function() {
+				if (this.ws) {
+					return this.ws.CLOSING;
+				}
 			}
 		},
 		CLOSED: {
-			get: function () {
-				return this.ws.CLOSED;
+			get: function() {
+				if (this.ws) {
+					return this.ws.CLOSED;
+				}
 			}
 		},
 		binaryType: {
-			get: function () {
-				return this.ws.binaryType;
+			get: function() {
+				if (this.ws) {
+					return this.ws.binaryType;
+				}
 			},
-			set: function (type) {
-				this.ws.binaryType = type;
+			set: function(type) {
+				var self = this;
+
+				if (this.ws) {
+					this.ws.binaryType = type;
+				} else {
+					setTimeout(function() {
+						self.ws.binaryType = type;
+					});
+				}
 			}
 		}
 	});
@@ -221,25 +254,29 @@
 
 	// Expose W3C WebSocket methods.
 
-	FakeWebSocket.prototype.send = function (data) {
+	FakeWebSocket.prototype.send = function(data) {
 		var self = this;
 
 		// Avoid iOS WebSocket crash.
-		setTimeout(function () {
+		setTimeout(function() {
 			self.ws.send(data);
 		});
 	};
 
-	FakeWebSocket.prototype.close = function (code, reason) {
-		if (!this.ws) {
-			return;
-		}
-		if (!code && !reason) {
-			this.ws.close();
-		} else if (code && !reason) {
-			this.ws.close(code);
-		} else {
-			this.ws.close(code, reason);
-		}
+	FakeWebSocket.prototype.close = function(code, reason) {
+		var self = this;
+
+		setTimeout(function() {
+			if (!self.ws) {
+				return;
+			}
+			if (!code && !reason) {
+				self.ws.close();
+			} else if (code && !reason) {
+				self.ws.close(code);
+			} else {
+				self.ws.close(code, reason);
+			}
+		});
 	};
 })();
